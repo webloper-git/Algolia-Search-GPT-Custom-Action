@@ -130,11 +130,15 @@ Exemplo de resposta:
 
 ---
 
-## 8) Dicas Magento + Algolia
 
-- Índice padrão comum: `magento2_default_products`.
-- Em lojas com múltiplas store views, podem existir índices separados por loja/idioma.
-- O campo de preço pode variar de estrutura no Algolia; a integração já trata os formatos mais comuns.
+## 8) Matriz de comportamento (troubleshooting)
+
+| HTTP | Cenário | Resposta esperada | Ação recomendada |
+|---|---|---|---|
+| 401 | Token ausente ou inválido em `X-Agent-Token` | `{"error":"Nao autorizado"}` | Verificar header enviado pelo backend e se o valor bate com `AGENT_SECRET_TOKEN`. |
+| 400 | `query` não enviada, vazia ou só com espaços | `{"error":"Query nao informada"}` | Garantir envio de `query` no JSON (`POST`) ou via `?query=` em testes. |
+| 200 | Busca válida sem resultados | `{ "total": 0, "products": [] }` | Não tratar como erro; orientar o cliente a refinar busca. |
+| 500 | Falha cURL, status HTTP não-2xx do Algolia, ou resposta inválida do Algolia | `{"error":"Erro ao buscar produtos"}` | Checar `ALGOLIA_APP_ID`, `ALGOLIA_SEARCH_KEY`, índice, conectividade e status do Algolia. |
 
 ---
 
@@ -142,7 +146,11 @@ Exemplo de resposta:
 
 Quando você usa **Assistants API com function/tool calling** (ex.: integração WhatsApp + OpenAI), o JSON da função **não contém URL**.
 
-O JSON da função é apenas o **contrato** (nome da função + parâmetros). Exemplo em `agent/function-schema.json`:
+O JSON da função é apenas o **contrato** (nome da função + parâmetros).
+
+Para configurar no painel de Functions/Tools, **copie e cole o conteúdo de** `agent/function-schema.json`.
+
+Exemplo em `agent/function-schema.json`:
 
 - função: `searchProducts`
 - parâmetro obrigatório: `query`
@@ -197,3 +205,11 @@ Resumo:
 - **Function JSON** = contrato da função.
 - **URL da API** = implementada e chamada pelo seu backend.
 - No Assistant, a URL **não** vai no JSON da função.
+
+---
+
+## 10) Dicas Magento + Algolia
+
+- Índice padrão comum: `magento2_default_products`.
+- Em lojas com múltiplas store views, podem existir índices separados por loja/idioma.
+- O campo de preço pode variar de estrutura no Algolia; a integração já trata os formatos mais comuns.

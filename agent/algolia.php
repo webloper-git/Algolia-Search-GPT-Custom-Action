@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/config.php';
 
-function searchAlgolia(string $query): array
+function searchAlgolia(string $query): ?array
 {
     $url = sprintf(
         'https://%s-dsn.algolia.net/1/indexes/%s/query',
@@ -35,12 +35,12 @@ function searchAlgolia(string $query): array
     curl_close($ch);
 
     if ($response === false || $curlError !== '' || $httpCode < 200 || $httpCode >= 300) {
-        return [];
+        return null;
     }
 
     $data = json_decode($response, true);
     if (!is_array($data) || !isset($data['hits']) || !is_array($data['hits'])) {
-        return [];
+        return null;
     }
 
     return $data['hits'];

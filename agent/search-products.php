@@ -39,7 +39,7 @@ if ($query === '') {
 }
 
 $hits = searchAlgolia($query);
-if ($hits === []) {
+if ($hits === null) {
     http_response_code(500);
     echo json_encode(['error' => 'Erro ao buscar produtos']);
     exit;
