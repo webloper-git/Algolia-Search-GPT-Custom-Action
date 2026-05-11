@@ -1,0 +1,15 @@
+{
+  "name": "searchProducts",
+  "description": "Busca produtos no catálogo da loja usando Algolia.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Termo de busca do produto"
+      }
+    },
+    "required": ["query"],
+    "additionalProperties": false
+  }
+}
