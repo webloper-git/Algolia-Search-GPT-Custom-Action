@@ -135,3 +135,65 @@ Exemplo de resposta:
 - Índice padrão comum: `magento2_default_products`.
 - Em lojas com múltiplas store views, podem existir índices separados por loja/idioma.
 - O campo de preço pode variar de estrutura no Algolia; a integração já trata os formatos mais comuns.
+
+---
+
+## 9) Uso com Assistant Function (sem URL no JSON da função)
+
+Quando você usa **Assistants API com function/tool calling** (ex.: integração WhatsApp + OpenAI), o JSON da função **não contém URL**.
+
+O JSON da função é apenas o **contrato** (nome da função + parâmetros). Exemplo em `agent/function-schema.json`:
+
+- função: `searchProducts`
+- parâmetro obrigatório: `query`
+
+A URL real do endpoint (`https://teclacenter.com.br/agent/search-products.php`) fica no **seu backend**.
+
+Fluxo real:
+
+1. Cliente pergunta no WhatsApp (ex.: "Tem teclado Yamaha?").
+2. O Assistant entra em `requires_action` pedindo a função `searchProducts` com `query`.
+3. Seu backend recebe o tool call.
+4. Seu backend chama a URL da API PHP com `X-Agent-Token`.
+5. Seu backend envia o resultado para `submitToolOutputs`.
+6. O Assistant responde ao cliente com base nos produtos retornados.
+
+Exemplo simplificado em PHP:
+
+```php
+if ($run->status === 'requires_action') {
+    $toolCall = $run->required_action->submit_tool_outputs->tool_calls[0];
+
+    $args = json_decode($toolCall->function->arguments, true);
+
+    if ($toolCall->function->name === 'searchProducts') {
+        $apiResponse = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'X-Agent-Token' => env('AGENT_TOKEN'),
+        ])->post('https://teclacenter.com.br/agent/search-products.php', [
+            'query' => $args['query'],
+        ]);
+
+        $products = $apiResponse->json();
+
+        $client->threads()->runs()->submitToolOutputs(
+            threadId: $threadId,
+            runId: $runId,
+            parameters: [
+                'tool_outputs' => [
+                    [
+                        'tool_call_id' => $toolCall->id,
+                        'output' => json_encode($products),
+                    ],
+                ],
+            ]
+        );
+    }
+}
+```
+
+Resumo:
+
+- **Function JSON** = contrato da função.
+- **URL da API** = implementada e chamada pelo seu backend.
+- No Assistant, a URL **não** vai no JSON da função.
