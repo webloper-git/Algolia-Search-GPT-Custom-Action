@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: Agent Search Products API
+  version: 1.0.0
+  description: API para busca de produtos no catálogo via Algolia.
+
+servers:
+  - url: https://teclacenter.com.br/agent
+
+paths:
+  /search-products.php:
+    post:
+      operationId: searchProducts
+      summary: Busca produtos no catálogo da loja
+      security:
+        - AgentTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchProductsRequest"
+      responses:
+        "200":
+          description: Lista de produtos encontrados.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchProductsResponse"
+
+components:
+  securitySchemes:
+    AgentTokenAuth:
+      type: apiKey
+      in: header
+      name: X-Agent-Token
+
+  schemas:
+    SearchProductsRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Termo de busca do produto.
+
+    SearchProductsResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        query:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+
+    Product:
+      type: object
+      properties:
+        name:
+          type: string
+        sku:
+          type: string
+        price:
+          type: string
+        url:
+          type: string
+        description:
+          type: string
